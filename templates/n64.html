@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>N64 - HoneyDuo Gaming</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --gold: #D4AF37; --gold-light: #F4CF67; --gold-dark: #A48928;
+            --forest: #228B22; --forest-light: #32CD32; --forest-dark: #1A6B1A;
+            --bg-dark: #0D0D0D; --bg-card: #1A1A1A; --bg-input: #252525;
+            --text: #E8E8E8; --text-dim: #888; --danger: #dc3545;
+        }
+        body {
+            font-family: 'Rajdhani', sans-serif; background: var(--bg-dark); min-height: 100vh;
+            color: var(--text); padding-bottom: 100px;
+            background-image: radial-gradient(ellipse at 20% 80%, rgba(34, 139, 34, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(212, 175, 55, 0.08) 0%, transparent 50%);
+        }
+        .header {
+            background: linear-gradient(180deg, var(--bg-card) 0%, transparent 100%);
+            padding: 1rem 1.5rem; display: flex; align-items: center; gap: 1rem;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+            position: sticky; top: 0; z-index: 100; backdrop-filter: blur(10px);
+        }
+        .back-btn { color: var(--gold); text-decoration: none; font-size: 1.5rem; line-height: 1; }
+        .header h1 { font-family: 'Orbitron', monospace; font-size: 1.2rem; font-weight: 700; color: var(--gold); }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--text-dim); margin-left: auto; transition: all 0.3s ease; }
+        .status-dot.running { background: var(--forest-light); box-shadow: 0 0 10px var(--forest-light); }
+        .container { padding: 1.5rem; max-width: 600px; margin: 0 auto; }
+        .section { background: var(--bg-card); border-radius: 16px; padding: 1.25rem; margin-bottom: 1rem; border: 1px solid rgba(212, 175, 55, 0.1); }
+        .section-title { font-family: 'Orbitron', monospace; font-size: 0.75rem; color: var(--forest-light); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        .game-select {
+            width: 100%; padding: 1rem; font-size: 1rem; font-family: 'Rajdhani', sans-serif;
+            background: var(--bg-input); border: 2px solid transparent; border-radius: 10px; color: var(--text);
+            cursor: pointer; transition: all 0.3s ease; appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23D4AF37' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 1rem center; background-size: 24px;
+        }
+        .game-select:focus { outline: none; border-color: var(--gold); }
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1rem; }
+        .btn {
+            padding: 1rem; font-size: 1rem; font-family: 'Orbitron', monospace; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1px; border: none; border-radius: 10px;
+            cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+        }
+        .btn-launch { background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%); color: var(--bg-dark); box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3); }
+        .btn-launch:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(212, 175, 55, 0.4); }
+        .btn-launch:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-stop { background: linear-gradient(135deg, var(--danger) 0%, #a71d2a 100%); color: var(--text); box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3); }
+        .btn-stop:hover { transform: translateY(-2px); }
+        .btn-secondary { background: var(--bg-input); color: var(--text); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .btn-secondary:hover { border-color: var(--gold); color: var(--gold); }
+        .btn-save { background: linear-gradient(135deg, var(--forest) 0%, var(--forest-dark) 100%); color: var(--text); }
+        .btn-save:hover { transform: translateY(-2px); }
+        .btn-load { background: var(--bg-input); color: var(--forest-light); border: 1px solid var(--forest); }
+        .btn-load:hover { background: var(--forest-dark); color: var(--text); }
+        .collapsible { cursor: pointer; user-select: none; }
+        .collapsible::after { content: '▼'; font-size: 0.7rem; margin-left: auto; transition: transform 0.3s ease; }
+        .collapsible.active::after { transform: rotate(180deg); }
+        .collapse-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+        .collapse-content.show { max-height: 2000px; }
+        .state-controls { display: flex; gap: 0.5rem; margin-bottom: 1rem; align-items: center; }
+        .slot-select { flex: 1; padding: 0.75rem; font-family: 'Rajdhani', sans-serif; background: var(--bg-input); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: var(--text); }
+        .state-btn-group { display: flex; gap: 0.5rem; }
+        .state-btn-group .btn { padding: 0.75rem 1rem; font-size: 0.85rem; }
+        .state-list { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 1rem; }
+        .state-item { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem; background: var(--bg-input); border-radius: 8px; }
+        .state-info { display: flex; flex-direction: column; gap: 0.25rem; }
+        .state-item .slot { font-family: 'Orbitron', monospace; color: var(--gold); font-size: 0.9rem; }
+        .state-item .date { color: var(--text-dim); font-size: 0.75rem; }
+        .state-actions { display: flex; gap: 0.5rem; }
+        .state-actions button { background: none; border: none; cursor: pointer; padding: 0.5rem; font-size: 0.9rem; border-radius: 6px; transition: all 0.2s; }
+        .load-btn { color: var(--forest-light); }
+        .load-btn:hover { background: var(--forest-dark); }
+        .delete-btn { color: var(--danger); }
+        .delete-btn:hover { background: rgba(220, 53, 69, 0.2); }
+        .empty-state { color: var(--text-dim); text-align: center; padding: 1rem; font-size: 0.9rem; }
+        .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        .setting-row:last-child { border-bottom: none; }
+        .setting-label { font-size: 0.95rem; }
+        .toggle { position: relative; width: 50px; height: 28px; }
+        .toggle input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-input); border-radius: 28px; transition: 0.3s; }
+        .toggle-slider::before { position: absolute; content: ""; height: 22px; width: 22px; left: 3px; bottom: 3px; background: var(--text-dim); border-radius: 50%; transition: 0.3s; }
+        .toggle input:checked + .toggle-slider { background: var(--forest); }
+        .toggle input:checked + .toggle-slider::before { transform: translateX(22px); background: var(--text); }
+        .select-small { padding: 0.5rem; font-size: 0.9rem; font-family: 'Rajdhani', sans-serif; background: var(--bg-input); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; color: var(--text); }
+        .cheat-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: var(--bg-input); border-radius: 8px; margin-bottom: 0.5rem; }
+        .cheat-item .cheat-info { flex: 1; }
+        .cheat-item .cheat-name { font-size: 0.95rem; }
+        .cheat-item .cheat-code { font-size: 0.75rem; color: var(--text-dim); font-family: monospace; }
+        .cheat-item .delete-btn { padding: 0.25rem 0.5rem; }
+        .add-cheat-form { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+        .add-cheat-form input { width: 100%; padding: 0.75rem; margin-bottom: 0.5rem; font-family: 'Rajdhani', sans-serif; font-size: 0.95rem; background: var(--bg-input); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; color: var(--text); }
+        .add-cheat-form input:focus { outline: none; border-color: var(--gold); }
+        .btn-add { width: 100%; padding: 0.75rem; background: var(--forest-dark); color: var(--text); border: none; border-radius: 6px; font-family: 'Rajdhani', sans-serif; font-size: 0.95rem; cursor: pointer; transition: all 0.3s ease; }
+        .btn-add:hover { background: var(--forest); }
+        .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--bg-card); color: var(--text); padding: 1rem 1.5rem; border-radius: 10px; border: 1px solid var(--gold); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4); opacity: 0; transition: all 0.3s ease; z-index: 1000; }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .toast.error { border-color: var(--danger); }
+        .note { font-size: 0.8rem; color: var(--text-dim); margin-top: 0.5rem; margin-bottom: 0.5rem; }
+        
+        /* Modal styles */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; overflow-y: auto; }
+        .modal.show { display: block; }
+        .modal-content { background: var(--bg-card); margin: 1rem; border-radius: 16px; padding: 1.5rem; max-width: 600px; margin: 1rem auto; border: 1px solid var(--gold); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .modal-header h2 { font-family: 'Orbitron', monospace; font-size: 1rem; color: var(--gold); }
+        .modal-close { background: none; border: none; color: var(--text-dim); font-size: 1.5rem; cursor: pointer; }
+        .modal-close:hover { color: var(--text); }
+        .search-box { width: 100%; padding: 0.75rem; margin-bottom: 1rem; font-family: 'Rajdhani', sans-serif; background: var(--bg-input); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: var(--text); }
+        .search-box:focus { outline: none; border-color: var(--gold); }
+        .db-cheat-list { max-height: 400px; overflow-y: auto; }
+        .db-cheat-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: var(--bg-input); border-radius: 8px; margin-bottom: 0.5rem; cursor: pointer; transition: all 0.2s; }
+        .db-cheat-item:hover { border: 1px solid var(--forest); }
+        .db-cheat-item.selected { border: 1px solid var(--gold); background: rgba(212, 175, 55, 0.1); }
+        .db-cheat-item input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); }
+        .db-source { font-size: 0.75rem; color: var(--forest-light); margin-bottom: 1rem; }
+        .modal-footer { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); }
+        .import-count { font-size: 0.85rem; color: var(--text-dim); margin-bottom: 0.5rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/" class="back-btn">←</a>
+        <img src="/static/images/HoneyDuoPiN64.png" alt="N64" style="height: 40px;">
+        <div class="status-dot" id="statusDot" title="Game status"></div>
+    </div>
+    <div class="container">
+        <div class="section">
+            <div class="section-title">🎮 Select Game</div>
+            <select class="game-select" id="gameSelect">
+                <option value="">Choose a game...</option>
+                {% for game in games %}
+                <option value="{{ game.file }}">{{ game.name }}</option>
+                {% endfor %}
+            </select>
+            <div class="btn-group">
+                <button class="btn btn-launch" id="launchBtn" disabled>▶ Launch</button>
+                <button class="btn btn-stop" id="stopBtn">■ Stop</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title collapsible active" onclick="toggleSection(this)">💾 Save States</div>
+            <div class="collapse-content show">
+                <div class="state-controls">
+                    <select class="slot-select" id="slotSelect">
+                        <option value="0">Slot 0</option>
+                        <option value="1">Slot 1</option>
+                        <option value="2">Slot 2</option>
+                        <option value="3">Slot 3</option>
+                        <option value="4">Slot 4</option>
+                        <option value="5">Slot 5</option>
+                        <option value="6">Slot 6</option>
+                        <option value="7">Slot 7</option>
+                        <option value="8">Slot 8</option>
+                        <option value="9">Slot 9</option>
+                    </select>
+                    <div class="state-btn-group">
+                        <button class="btn btn-save" onclick="saveState()">💾 Save</button>
+                        <button class="btn btn-load" onclick="loadStateSlot()">📂 Load</button>
+                    </div>
+                </div>
+                <p class="note">Save/Load while game is running</p>
+                <div class="state-list" id="stateList"><div class="empty-state">Select a game to view save states</div></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title collapsible" onclick="toggleSection(this)">🔓 Cheats</div>
+            <div class="collapse-content">
+                <p class="note">Add cheats before launching. Toggle cheats and restart game to apply.</p>
+                <button class="btn btn-secondary" style="width: 100%; margin-bottom: 1rem;" onclick="openCheatDatabase()">📚 Browse Cheat Database</button>
+                <div id="cheatList"><div class="empty-state">Select a game to view cheats</div></div>
+                <div class="add-cheat-form">
+                    <input type="text" id="cheatName" placeholder="Cheat name (e.g. Infinite Lives)">
+                    <input type="text" id="cheatCode" placeholder="GameShark code (e.g. 8033B21D+0004)">
+                    <button class="btn-add" onclick="addCheat()">+ Add Cheat</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title collapsible" onclick="toggleSection(this)">⚙️ Game Settings</div>
+            <div class="collapse-content">
+                <div id="settingsContent">
+                    <div class="setting-row">
+                        <span class="setting-label">Video Smoothing</span>
+                        <label class="toggle"><input type="checkbox" id="settingSmooth"><span class="toggle-slider"></span></label>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">Aspect Ratio</span>
+                        <select class="select-small" id="settingAspect">
+                            <option value="22">Core Provided</option>
+                            <option value="0">4:3</option>
+                            <option value="1">16:9</option>
+                            <option value="2">16:10</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">Audio Latency</span>
+                        <select class="select-small" id="settingAudio">
+                            <option value="32">32ms (Low)</option>
+                            <option value="64">64ms (Default)</option>
+                            <option value="128">128ms (High)</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">Runahead (Reduce Lag)</span>
+                        <label class="toggle"><input type="checkbox" id="settingRunahead"><span class="toggle-slider"></span></label>
+                    </div>
+                    <button class="btn btn-secondary" style="width: 100%; margin-top: 1rem;" onclick="saveSettings()">Save Settings</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cheat Database Modal -->
+    <div class="modal" id="cheatModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📚 Cheat Database</h2>
+                <button class="modal-close" onclick="closeCheatDatabase()">&times;</button>
+            </div>
+            <div class="db-source" id="dbSource">Loading...</div>
+            <input type="text" class="search-box" id="cheatSearch" placeholder="Search cheats..." oninput="filterCheats()">
+            <div class="db-cheat-list" id="dbCheatList">
+                <div class="empty-state">Loading cheats...</div>
+            </div>
+            <div class="modal-footer">
+                <div class="import-count"><span id="selectedCount">0</span> cheats selected</div>
+                <button class="btn btn-launch" style="width: 100%;" onclick="importSelectedCheats()">Import Selected Cheats</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const gameSelect = document.getElementById('gameSelect');
+        const launchBtn = document.getElementById('launchBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const statusDot = document.getElementById('statusDot');
+        const slotSelect = document.getElementById('slotSelect');
+        let currentGame = null;
+        let cheats = [];
+        let dbCheats = [];
+        let selectedDbCheats = new Set();
+
+        gameSelect.addEventListener('change', function() {
+            currentGame = this.value;
+            launchBtn.disabled = !currentGame;
+            if (currentGame) { loadStates(); loadSettings(); loadCheats(); }
+            else {
+                document.getElementById('stateList').innerHTML = '<div class="empty-state">Select a game to view save states</div>';
+                document.getElementById('cheatList').innerHTML = '<div class="empty-state">Select a game to view cheats</div>';
+            }
+        });
+
+        launchBtn.addEventListener('click', async function() {
+            if (!currentGame) return;
+            launchBtn.disabled = true;
+            launchBtn.textContent = 'Launching...';
+            try {
+                const resp = await fetch('/api/launch', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({game: currentGame}) });
+                const data = await resp.json();
+                if (data.status === 'launched') { showToast('Game launched! 🎮'); checkStatus(); }
+                else { showToast('Failed to launch', true); }
+            } catch (e) { showToast('Error launching game', true); }
+            launchBtn.disabled = false;
+            launchBtn.innerHTML = '▶ Launch';
+        });
+
+        stopBtn.addEventListener('click', async function() {
+            try { await fetch('/api/stop', {method: 'POST'}); showToast('Game stopped'); checkStatus(); }
+            catch (e) { showToast('Error stopping game', true); }
+        });
+
+        async function checkStatus() {
+            try { const resp = await fetch('/api/status'); const data = await resp.json(); statusDot.classList.toggle('running', data.running); }
+            catch (e) {}
+        }
+
+        async function saveState() {
+            const slot = slotSelect.value;
+            try {
+                const resp = await fetch('/api/savestate', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({slot: parseInt(slot)}) });
+                const data = await resp.json();
+                if (data.status === 'saved') { showToast(`Saved to slot ${slot}! 💾`); setTimeout(loadStates, 500); }
+                else { showToast('Failed to save', true); }
+            } catch (e) { showToast('Error saving state', true); }
+        }
+
+        async function loadStateSlot() {
+            const slot = slotSelect.value;
+            try {
+                const resp = await fetch('/api/loadstate', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({slot: parseInt(slot)}) });
+                const data = await resp.json();
+                if (data.status === 'loaded') { showToast(`Loaded slot ${slot}! 📂`); }
+                else { showToast('Failed to load', true); }
+            } catch (e) { showToast('Error loading state', true); }
+        }
+
+        async function loadState(slot) {
+            try {
+                const resp = await fetch('/api/loadstate', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({slot: parseInt(slot)}) });
+                const data = await resp.json();
+                if (data.status === 'loaded') { showToast(`Loaded slot ${slot}! 📂`); }
+                else { showToast('Failed to load', true); }
+            } catch (e) { showToast('Error loading state', true); }
+        }
+
+        async function loadStates() {
+            if (!currentGame) return;
+            try {
+                const resp = await fetch(`/api/states/${currentGame}`);
+                const states = await resp.json();
+                if (states.length === 0) { document.getElementById('stateList').innerHTML = '<div class="empty-state">No save states yet</div>'; return; }
+                document.getElementById('stateList').innerHTML = states.map(s => {
+                    const date = new Date(s.modified * 1000).toLocaleString();
+                    const slot = s.slot || '0';
+                    return `<div class="state-item">
+                        <div class="state-info"><span class="slot">Slot ${slot}</span><span class="date">${date}</span></div>
+                        <div class="state-actions">
+                            <button class="load-btn" onclick="loadState('${slot}')" title="Load">📂</button>
+                            <button class="delete-btn" onclick="deleteState('${slot}')" title="Delete">🗑️</button>
+                        </div>
+                    </div>`;
+                }).join('');
+            } catch (e) { document.getElementById('stateList').innerHTML = '<div class="empty-state">Error loading states</div>'; }
+        }
+
+        async function deleteState(slot) {
+            if (!confirm('Delete this save state?')) return;
+            try { await fetch(`/api/states/${currentGame}/${slot}`, {method: 'DELETE'}); showToast('Save state deleted'); loadStates(); }
+            catch (e) { showToast('Error deleting state', true); }
+        }
+
+        async function loadSettings() {
+            if (!currentGame) return;
+            try {
+                const resp = await fetch(`/api/settings/${currentGame}`);
+                const settings = await resp.json();
+                document.getElementById('settingSmooth').checked = settings.video_smooth === 'true';
+                document.getElementById('settingAspect').value = settings.aspect_ratio_index || '22';
+                document.getElementById('settingAudio').value = settings.audio_latency || '64';
+                document.getElementById('settingRunahead').checked = settings.run_ahead_enabled === 'true';
+            } catch (e) {}
+        }
+
+        async function saveSettings() {
+            if (!currentGame) { showToast('Select a game first', true); return; }
+            const settings = {
+                video_smooth: document.getElementById('settingSmooth').checked.toString(),
+                aspect_ratio_index: document.getElementById('settingAspect').value,
+                audio_latency: document.getElementById('settingAudio').value,
+                run_ahead_enabled: document.getElementById('settingRunahead').checked.toString(),
+                run_ahead_frames: '1'
+            };
+            try { await fetch(`/api/settings/${currentGame}`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(settings) }); showToast('Settings saved!'); }
+            catch (e) { showToast('Error saving settings', true); }
+        }
+
+        async function loadCheats() {
+            if (!currentGame) return;
+            try {
+                const resp = await fetch(`/api/cheats/${currentGame}`);
+                cheats = await resp.json();
+                if (cheats.length === 0) { document.getElementById('cheatList').innerHTML = '<div class="empty-state">No cheats added yet. Browse the database!</div>'; return; }
+                document.getElementById('cheatList').innerHTML = cheats.map((c, i) => `
+                    <div class="cheat-item">
+                        <label class="toggle"><input type="checkbox" ${c.enabled ? 'checked' : ''} onchange="toggleCheat(${i})"><span class="toggle-slider"></span></label>
+                        <div class="cheat-info">
+                            <span class="cheat-name">${c.desc}</span>
+                            <span class="cheat-code">${c.code}</span>
+                        </div>
+                        <button class="delete-btn" onclick="deleteCheat(${i})" title="Delete">🗑️</button>
+                    </div>`).join('');
+            } catch (e) { document.getElementById('cheatList').innerHTML = '<div class="empty-state">Error loading cheats</div>'; }
+        }
+
+        async function toggleCheat(index) {
+            cheats[index].enabled = !cheats[index].enabled;
+            try { await fetch(`/api/cheats/${currentGame}`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(cheats) }); showToast(cheats[index].enabled ? 'Cheat enabled' : 'Cheat disabled'); }
+            catch (e) { showToast('Error saving cheat', true); }
+        }
+
+        async function deleteCheat(index) {
+            if (!confirm('Delete this cheat?')) return;
+            try {
+                await fetch(`/api/cheats/${currentGame}/${index}`, { method: 'DELETE' });
+                showToast('Cheat deleted');
+                loadCheats();
+            } catch (e) { showToast('Error deleting cheat', true); }
+        }
+
+        async function addCheat() {
+            const name = document.getElementById('cheatName').value.trim();
+            const code = document.getElementById('cheatCode').value.trim().replace(/\s+/g, '+');
+            if (!name || !code) { showToast('Enter cheat name and code', true); return; }
+            if (!currentGame) { showToast('Select a game first', true); return; }
+            try {
+                await fetch(`/api/cheats/${currentGame}/add`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({desc: name, code: code, enabled: false}) });
+                document.getElementById('cheatName').value = '';
+                document.getElementById('cheatCode').value = '';
+                showToast('Cheat added!');
+                loadCheats();
+            } catch (e) { showToast('Error adding cheat', true); }
+        }
+
+        // Cheat Database Functions
+        async function openCheatDatabase() {
+            if (!currentGame) { showToast('Select a game first', true); return; }
+            document.getElementById('cheatModal').classList.add('show');
+            document.getElementById('dbCheatList').innerHTML = '<div class="empty-state">Loading cheats...</div>';
+            document.getElementById('dbSource').textContent = 'Loading...';
+            selectedDbCheats.clear();
+            updateSelectedCount();
+            
+            try {
+                const resp = await fetch(`/api/cheats/database/${currentGame}`);
+                const data = await resp.json();
+                dbCheats = data.cheats || [];
+                document.getElementById('dbSource').textContent = data.source ? `Source: ${data.source} (${dbCheats.length} cheats)` : 'No cheat file found for this game';
+                renderDbCheats();
+            } catch (e) {
+                document.getElementById('dbCheatList').innerHTML = '<div class="empty-state">Error loading database</div>';
+            }
+        }
+
+        function closeCheatDatabase() {
+            document.getElementById('cheatModal').classList.remove('show');
+        }
+
+        function renderDbCheats() {
+            const search = document.getElementById('cheatSearch').value.toLowerCase();
+            const filtered = dbCheats.filter(c => c.desc.toLowerCase().includes(search) || c.code.toLowerCase().includes(search));
+            
+            if (filtered.length === 0) {
+                document.getElementById('dbCheatList').innerHTML = '<div class="empty-state">No cheats found</div>';
+                return;
+            }
+            
+            document.getElementById('dbCheatList').innerHTML = filtered.map((c, i) => `
+                <div class="db-cheat-item ${selectedDbCheats.has(c.code) ? 'selected' : ''}" onclick="toggleDbCheat('${c.code}')">
+                    <input type="checkbox" ${selectedDbCheats.has(c.code) ? 'checked' : ''} onclick="event.stopPropagation(); toggleDbCheat('${c.code}')">
+                    <div class="cheat-info">
+                        <span class="cheat-name">${c.desc}</span>
+                        <span class="cheat-code">${c.code}</span>
+                    </div>
+                </div>`).join('');
+        }
+
+        function filterCheats() {
+            renderDbCheats();
+        }
+
+        function toggleDbCheat(code) {
+            if (selectedDbCheats.has(code)) {
+                selectedDbCheats.delete(code);
+            } else {
+                selectedDbCheats.add(code);
+            }
+            updateSelectedCount();
+            renderDbCheats();
+        }
+
+        function updateSelectedCount() {
+            document.getElementById('selectedCount').textContent = selectedDbCheats.size;
+        }
+
+        async function importSelectedCheats() {
+            if (selectedDbCheats.size === 0) { showToast('Select cheats to import', true); return; }
+            
+            const toImport = dbCheats.filter(c => selectedDbCheats.has(c.code));
+            try {
+                const resp = await fetch(`/api/cheats/${currentGame}/import`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({cheats: toImport})
+                });
+                const data = await resp.json();
+                showToast(`Imported ${selectedDbCheats.size} cheats!`);
+                closeCheatDatabase();
+                loadCheats();
+            } catch (e) {
+                showToast('Error importing cheats', true);
+            }
+        }
+
+        function toggleSection(element) { element.classList.toggle('active'); element.nextElementSibling.classList.toggle('show'); }
+
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.toggle('error', isError);
+            toast.classList.add('show');
+            setTimeout(() => { toast.classList.remove('show'); }, 3000);
+        }
+
+        setInterval(checkStatus, 5000);
+        checkStatus();
+    </script>
+</body>
+</html>

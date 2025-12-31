@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>HoneyDuo Gaming</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --gold: #D4AF37; --gold-light: #F4CF67; --gold-dark: #A48928;
+            --forest: #228B22; --forest-light: #32CD32; --forest-dark: #1A6B1A;
+            --bg-dark: #0D0D0D; --bg-card: #1A1A1A; --bg-input: #252525;
+            --text: #E8E8E8; --text-dim: #888;
+        }
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--bg-dark);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text);
+            background-image: 
+                radial-gradient(ellipse at 20% 80%, rgba(34, 139, 34, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(212, 175, 55, 0.08) 0%, transparent 50%);
+        }
+        .login-container { width: 90%; max-width: 380px; padding: 2rem; }
+        .logo { text-align: center; margin-bottom: 2.5rem; }
+        .logo h1 {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.8rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 50%, var(--gold-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 0.5rem;
+        }
+        .logo .subtitle { font-size: 0.9rem; color: var(--forest-light); letter-spacing: 4px; text-transform: uppercase; }
+        .controller-icon { font-size: 3rem; margin-bottom: 1rem; display: block; }
+        .login-box {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 2rem;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+        .form-group { margin-bottom: 1.5rem; }
+        label { display: block; font-size: 0.85rem; color: var(--text-dim); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px; }
+        input[type="password"] {
+            width: 100%; padding: 1rem; font-size: 1.1rem; font-family: 'Rajdhani', sans-serif;
+            background: var(--bg-input); border: 2px solid transparent; border-radius: 8px; color: var(--text); transition: all 0.3s ease;
+        }
+        input[type="password"]:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 20px rgba(212, 175, 55, 0.2); }
+        .btn {
+            width: 100%; padding: 1rem; font-size: 1.1rem; font-family: 'Orbitron', monospace; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 2px; border: none; border-radius: 8px; cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, var(--forest) 0%, var(--forest-dark) 100%);
+            color: var(--text); box-shadow: 0 4px 15px rgba(34, 139, 34, 0.3);
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(34, 139, 34, 0.4); background: linear-gradient(135deg, var(--forest-light) 0%, var(--forest) 100%); }
+        .error { background: rgba(255, 50, 50, 0.1); border: 1px solid rgba(255, 50, 50, 0.3); color: #ff6b6b; padding: 0.75rem; border-radius: 8px; margin-bottom: 1rem; text-align: center; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">
+            <span class="controller-icon">🎮</span>
+            <h1>HoneyDuo</h1>
+            <div class="subtitle">Gaming Hub</div>
+        </div>
+        <div class="login-box">
+            {% if error %}<div class="error">Invalid password. Try again.</div>{% endif %}
+            <form method="POST">
+                <div class="form-group">
+                    <label for="password">Enter Password</label>
+                    <input type="password" id="password" name="password" placeholder="••••••••" autofocus>
+                </div>
+                <button type="submit" class="btn">Enter</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

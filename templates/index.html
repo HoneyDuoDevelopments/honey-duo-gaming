@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Honey Duo Pi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --gold: #D4AF37; --gold-light: #F4CF67; --gold-dark: #A48928;
+            --forest: #228B22; --forest-light: #32CD32; --forest-dark: #1A6B1A;
+            --bg-dark: #0D0D0D; --bg-card: #1A1A1A; --text: #E8E8E8; --text-dim: #888;
+        }
+        body {
+            font-family: 'Rajdhani', sans-serif; background: var(--bg-dark); min-height: 100vh; color: var(--text);
+            background-image: radial-gradient(ellipse at 20% 80%, rgba(34, 139, 34, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(212, 175, 55, 0.08) 0%, transparent 50%);
+        }
+        .header {
+            background: linear-gradient(180deg, var(--bg-card) 0%, transparent 100%);
+            padding: 1.5rem; text-align: center; border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+        }
+        .logo { width: 150px; height: auto; margin-bottom: 0.5rem; }
+        .container { padding: 1.5rem; max-width: 600px; margin: 0 auto; }
+        .hub-grid { display: grid; gap: 1rem; }
+        .hub-card {
+            background: var(--bg-card); border-radius: 16px; padding: 1.5rem; border: 1px solid rgba(212, 175, 55, 0.15);
+            text-decoration: none; color: var(--text); display: flex; align-items: center; gap: 1rem;
+            transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .hub-card:hover { transform: translateY(-3px); border-color: var(--gold); box-shadow: 0 8px 30px rgba(212, 175, 55, 0.15); }
+        .hub-card .icon {
+            font-size: 2.5rem; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, var(--forest-dark) 0%, var(--forest) 100%); border-radius: 12px; flex-shrink: 0;
+        }
+        .hub-card .icon img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; }
+        .hub-card .info h2 { font-family: 'Orbitron', monospace; font-size: 1.1rem; font-weight: 700; color: var(--gold); margin-bottom: 0.25rem; }
+        .hub-card .info p { font-size: 0.9rem; color: var(--text-dim); }
+        .hub-card.coming-soon { opacity: 0.5; pointer-events: none; }
+        .hub-card.coming-soon .badge { background: var(--bg-dark); color: var(--text-dim); font-size: 0.65rem; padding: 0.25rem 0.5rem; border-radius: 4px; margin-left: auto; text-transform: uppercase; letter-spacing: 1px; }
+        .logout { position: fixed; bottom: 1.5rem; right: 1.5rem; background: var(--bg-card); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text-dim); padding: 0.75rem 1rem; border-radius: 8px; text-decoration: none; font-size: 0.85rem; transition: all 0.3s ease; }
+        .logout:hover { border-color: var(--gold); color: var(--gold); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="/static/images/HoneyDuoPiMain.png" alt="Honey Duo Pi" class="logo">
+    </div>
+    <div class="container">
+        <div class="hub-grid">
+            <a href="/n64" class="hub-card">
+                <div class="icon"><img src="/static/images/HoneyDuoPiN64.png" alt="N64"></div>
+                <div class="info"><h2>N64</h2><p>Nintendo 64 games</p></div>
+            </a>
+            <div class="hub-card coming-soon">
+                <div class="icon">💰</div>
+                <div class="info"><h2>Spending</h2><p>Budget dashboard</p></div>
+                <span class="badge">Coming Soon</span>
+            </div>
+        </div>
+    </div>
+    <a href="/logout" class="logout">Logout</a>
+</body>
+</html>

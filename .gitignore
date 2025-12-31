@@ -1,0 +1,27 @@
+# Virtual environment
+venv/
+.venv/
+
+# ROMs (copyrighted content)
+N64/
+*.z64
+*.n64
+*.v64
+
+# Logs
+*.log
+logs/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+
+# Keep README for ROM directory
+!N64/README.md
