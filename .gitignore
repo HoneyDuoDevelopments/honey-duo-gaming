@@ -25,3 +25,5 @@ Thumbs.db
 
 # Keep README for ROM directory
 !N64/README.md
+.env
+*.backup

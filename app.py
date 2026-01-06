@@ -3,6 +3,7 @@ import os
 import subprocess
 import socket
 import glob
+import json
 
 app = Flask(__name__)
 app.secret_key = 'honeyduo-secret-key-2024'
@@ -18,12 +19,65 @@ CORE_PATH = os.path.join(RETROARCH_CONFIG, 'cores/mupen64plus_next_libretro.so')
 STATES_DIR = os.path.join(RETROARCH_CONFIG, 'states/Mupen64Plus-Next')
 CHEATS_DIR = os.path.join(RETROARCH_CONFIG, 'cheats/Mupen64Plus-Next')
 CHEATS_DB_DIR = os.path.join(RETROARCH_CONFIG, 'cheats/N64')
-GAME_CONFIGS_DIR = os.path.join(RETROARCH_CONFIG, 'config/Mupen64Plus-Next')
+CORE_OPTIONS_DIR = os.path.join(RETROARCH_CONFIG, 'config/Mupen64Plus-Next')
+PRESETS_DIR = '/home/honeyduopi/Desktop/HoneyDuoGaming/presets'
 PASSWORD = 'Togetheralways5$'
 
 # Ensure directories exist
-for d in [STATES_DIR, CHEATS_DIR, GAME_CONFIGS_DIR]:
+for d in [STATES_DIR, CHEATS_DIR, CORE_OPTIONS_DIR, PRESETS_DIR]:
     os.makedirs(d, exist_ok=True)
+
+# Default core options for presets
+PRESET_PERFORMANCE = {
+    'mupen64plus-cpucore': 'dynamic_recompiler',
+    'mupen64plus-43screensize': '640x480',
+    'mupen64plus-169screensize': '854x480',
+    'mupen64plus-BilinearMode': 'standard',
+    'mupen64plus-MultiSampling': '0',
+    'mupen64plus-EnableFBEmulation': 'True',
+    'mupen64plus-EnableCopyColorToRDRAM': 'Off',
+    'mupen64plus-EnableCopyDepthToRDRAM': 'Off',
+    'mupen64plus-txFilterMode': '0',
+    'mupen64plus-txEnhancementMode': '0',
+    'mupen64plus-EnableHWLighting': 'False',
+    'mupen64plus-FXAA': '0',
+}
+
+PRESET_BALANCED = {
+    'mupen64plus-cpucore': 'dynamic_recompiler',
+    'mupen64plus-43screensize': '960x720',
+    'mupen64plus-169screensize': '1280x720',
+    'mupen64plus-BilinearMode': '3point',
+    'mupen64plus-MultiSampling': '0',
+    'mupen64plus-EnableFBEmulation': 'True',
+    'mupen64plus-EnableCopyColorToRDRAM': 'Async',
+    'mupen64plus-EnableCopyDepthToRDRAM': 'Off',
+    'mupen64plus-txFilterMode': '0',
+    'mupen64plus-txEnhancementMode': '0',
+    'mupen64plus-EnableHWLighting': 'False',
+    'mupen64plus-FXAA': '0',
+}
+
+PRESET_QUALITY = {
+    'mupen64plus-cpucore': 'dynamic_recompiler',
+    'mupen64plus-43screensize': '1440x1080',
+    'mupen64plus-169screensize': '1920x1080',
+    'mupen64plus-BilinearMode': '3point',
+    'mupen64plus-MultiSampling': '2',
+    'mupen64plus-EnableFBEmulation': 'True',
+    'mupen64plus-EnableCopyColorToRDRAM': 'Async',
+    'mupen64plus-EnableCopyDepthToRDRAM': 'Software',
+    'mupen64plus-txFilterMode': '1',
+    'mupen64plus-txEnhancementMode': '0',
+    'mupen64plus-EnableHWLighting': 'True',
+    'mupen64plus-FXAA': '1',
+}
+
+PRESETS = {
+    'performance': PRESET_PERFORMANCE,
+    'balanced': PRESET_BALANCED,
+    'quality': PRESET_QUALITY,
+}
 
 def login_required(f):
     from functools import wraps
@@ -37,11 +91,34 @@ def login_required(f):
 def send_retroarch_cmd(cmd):
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.settimeout(0.5)
         sock.sendto(cmd.encode(), ('127.0.0.1', 55355))
         sock.close()
         return True
     except:
         return False
+
+def read_opt_file(game):
+    """Read per-game .opt file with core options"""
+    game_name = os.path.splitext(game)[0]
+    opt_path = os.path.join(CORE_OPTIONS_DIR, f'{game_name}.opt')
+    options = {}
+    if os.path.exists(opt_path):
+        with open(opt_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if '=' in line and not line.startswith('#'):
+                    key, val = line.split('=', 1)
+                    options[key.strip()] = val.strip().strip('"')
+    return options
+
+def write_opt_file(game, options):
+    """Write per-game .opt file with core options"""
+    game_name = os.path.splitext(game)[0]
+    opt_path = os.path.join(CORE_OPTIONS_DIR, f'{game_name}.opt')
+    with open(opt_path, 'w') as f:
+        for key, val in sorted(options.items()):
+            f.write(f'{key} = "{val}"\n')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -148,30 +225,76 @@ def load_state():
     send_retroarch_cmd('LOAD_STATE')
     return jsonify({'status': 'loaded', 'slot': slot})
 
+# === SETTINGS ENDPOINTS (Per-Game .opt files) ===
+
 @app.route('/api/settings/<game>')
 @login_required
 def get_settings(game):
-    game_name = os.path.splitext(game)[0]
-    config_path = os.path.join(GAME_CONFIGS_DIR, f'{game_name}.cfg')
-    settings = {}
-    if os.path.exists(config_path):
-        with open(config_path, 'r') as f:
-            for line in f:
-                if '=' in line:
-                    key, val = line.strip().split('=', 1)
-                    settings[key.strip()] = val.strip().strip('"')
-    return jsonify(settings)
+    """Get per-game core options"""
+    options = read_opt_file(game)
+    # Return just the settings we care about for the UI
+    return jsonify({
+        'resolution': options.get('mupen64plus-43screensize', '960x720'),
+        'cpucore': options.get('mupen64plus-cpucore', 'dynamic_recompiler'),
+        'bilinear': options.get('mupen64plus-BilinearMode', '3point'),
+        'msaa': options.get('mupen64plus-MultiSampling', '0'),
+        'hwlighting': options.get('mupen64plus-EnableHWLighting', 'False'),
+        'fxaa': options.get('mupen64plus-FXAA', '0'),
+        'aspect': options.get('mupen64plus-aspect', '4:3'),
+    })
 
 @app.route('/api/settings/<game>', methods=['POST'])
 @login_required
 def save_settings(game):
-    game_name = os.path.splitext(game)[0]
-    config_path = os.path.join(GAME_CONFIGS_DIR, f'{game_name}.cfg')
-    settings = request.json
-    with open(config_path, 'w') as f:
-        for key, val in settings.items():
-            f.write(f'{key} = "{val}"\n')
+    """Save per-game core options"""
+    data = request.json
+    
+    # Read existing options to preserve ones we don't modify
+    options = read_opt_file(game)
+    
+    # Map UI values to core options
+    if 'resolution' in data:
+        options['mupen64plus-43screensize'] = data['resolution']
+        # Set 16:9 based on 4:3 resolution
+        res_map = {
+            '640x480': '854x480',
+            '960x720': '1280x720',
+            '1280x960': '1706x960',
+            '1440x1080': '1920x1080',
+        }
+        options['mupen64plus-169screensize'] = res_map.get(data['resolution'], '1280x720')
+    
+    if 'cpucore' in data:
+        options['mupen64plus-cpucore'] = data['cpucore']
+    if 'bilinear' in data:
+        options['mupen64plus-BilinearMode'] = data['bilinear']
+    if 'msaa' in data:
+        options['mupen64plus-MultiSampling'] = data['msaa']
+    if 'hwlighting' in data:
+        options['mupen64plus-EnableHWLighting'] = data['hwlighting']
+    if 'fxaa' in data:
+        options['mupen64plus-FXAA'] = data['fxaa']
+    if 'aspect' in data:
+        options['mupen64plus-aspect'] = data['aspect']
+    
+    write_opt_file(game, options)
     return jsonify({'status': 'saved'})
+
+@app.route('/api/settings/<game>/preset/<preset_name>', methods=['POST'])
+@login_required
+def apply_preset(game, preset_name):
+    """Apply a preset to a game"""
+    if preset_name not in PRESETS:
+        return jsonify({'status': 'error', 'message': 'Unknown preset'}), 400
+    
+    # Read existing options to preserve others
+    options = read_opt_file(game)
+    
+    # Apply preset values
+    options.update(PRESETS[preset_name])
+    
+    write_opt_file(game, options)
+    return jsonify({'status': 'applied', 'preset': preset_name})
 
 # Database routes MUST come before generic <game> routes
 @app.route('/api/cheats/database/<game>')
@@ -355,4 +478,4 @@ def static_files(filename):
     return send_from_directory('/home/honeyduopi/Desktop/HoneyDuoGaming/static', filename)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5001, debug=True)

@@ -83,13 +83,14 @@
         .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
         .setting-row:last-child { border-bottom: none; }
         .setting-label { font-size: 0.95rem; }
+        .setting-hint { font-size: 0.75rem; color: var(--text-dim); }
         .toggle { position: relative; width: 50px; height: 28px; }
         .toggle input { opacity: 0; width: 0; height: 0; }
         .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-input); border-radius: 28px; transition: 0.3s; }
         .toggle-slider::before { position: absolute; content: ""; height: 22px; width: 22px; left: 3px; bottom: 3px; background: var(--text-dim); border-radius: 50%; transition: 0.3s; }
         .toggle input:checked + .toggle-slider { background: var(--forest); }
         .toggle input:checked + .toggle-slider::before { transform: translateX(22px); background: var(--text); }
-        .select-small { padding: 0.5rem; font-size: 0.9rem; font-family: 'Rajdhani', sans-serif; background: var(--bg-input); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; color: var(--text); }
+        .select-small { padding: 0.5rem; font-size: 0.9rem; font-family: 'Rajdhani', sans-serif; background: var(--bg-input); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; color: var(--text); min-width: 140px; }
         .cheat-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: var(--bg-input); border-radius: 8px; margin-bottom: 0.5rem; }
         .cheat-item .cheat-info { flex: 1; }
         .cheat-item .cheat-name { font-size: 0.95rem; }
@@ -104,6 +105,12 @@
         .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
         .toast.error { border-color: var(--danger); }
         .note { font-size: 0.8rem; color: var(--text-dim); margin-top: 0.5rem; margin-bottom: 0.5rem; }
+        
+        /* Preset buttons */
+        .preset-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 1rem; }
+        .preset-btn { padding: 0.6rem; font-size: 0.8rem; font-family: 'Orbitron', monospace; text-transform: uppercase; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: var(--bg-input); color: var(--text-dim); cursor: pointer; transition: all 0.2s; }
+        .preset-btn:hover { border-color: var(--gold); color: var(--gold); }
+        .preset-btn.active { border-color: var(--forest-light); background: var(--forest-dark); color: var(--text); }
         
         /* Modal styles */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; overflow-y: auto; }
@@ -173,6 +180,73 @@
         </div>
 
         <div class="section">
+            <div class="section-title collapsible" onclick="toggleSection(this)">⚙️ Graphics Settings</div>
+            <div class="collapse-content">
+                <p class="note">Settings save per-game. Restart game to apply.</p>
+                
+                <div class="preset-group">
+                    <button class="preset-btn" onclick="applyPreset('performance')">⚡ Fast</button>
+                    <button class="preset-btn" onclick="applyPreset('balanced')">⚖️ Balanced</button>
+                    <button class="preset-btn" onclick="applyPreset('quality')">✨ Quality</button>
+                </div>
+                
+                <div id="settingsContent">
+                    <div class="setting-row">
+                        <div>
+                            <span class="setting-label">Resolution</span>
+                            <div class="setting-hint">Higher = sharper but slower</div>
+                        </div>
+                        <select class="select-small" id="settingResolution">
+                            <option value="640x480">480p (Fast)</option>
+                            <option value="960x720">720p (Balanced)</option>
+                            <option value="1280x960">960p</option>
+                            <option value="1440x1080">1080p (Sharp)</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <div>
+                            <span class="setting-label">Aspect Ratio</span>
+                        </div>
+                        <select class="select-small" id="settingAspect">
+                            <option value="4:3">4:3 (Original)</option>
+                            <option value="16:9">16:9 (Widescreen)</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <div>
+                            <span class="setting-label">Texture Filter</span>
+                            <div class="setting-hint">3-point = N64 authentic</div>
+                        </div>
+                        <select class="select-small" id="settingBilinear">
+                            <option value="standard">Standard</option>
+                            <option value="3point">3-Point (N64)</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <div>
+                            <span class="setting-label">Anti-Aliasing</span>
+                            <div class="setting-hint">Smooths jagged edges</div>
+                        </div>
+                        <select class="select-small" id="settingMSAA">
+                            <option value="0">Off</option>
+                            <option value="2">2x MSAA</option>
+                            <option value="4">4x MSAA</option>
+                        </select>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">Enhanced Lighting</span>
+                        <label class="toggle"><input type="checkbox" id="settingHWLight"><span class="toggle-slider"></span></label>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">FXAA (Blur Filter)</span>
+                        <label class="toggle"><input type="checkbox" id="settingFXAA"><span class="toggle-slider"></span></label>
+                    </div>
+                    <button class="btn btn-secondary" style="width: 100%; margin-top: 1rem;" onclick="saveSettings()">💾 Save Settings</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
             <div class="section-title collapsible" onclick="toggleSection(this)">🔓 Cheats</div>
             <div class="collapse-content">
                 <p class="note">Add cheats before launching. Toggle cheats and restart game to apply.</p>
@@ -182,40 +256,6 @@
                     <input type="text" id="cheatName" placeholder="Cheat name (e.g. Infinite Lives)">
                     <input type="text" id="cheatCode" placeholder="GameShark code (e.g. 8033B21D+0004)">
                     <button class="btn-add" onclick="addCheat()">+ Add Cheat</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="section">
-            <div class="section-title collapsible" onclick="toggleSection(this)">⚙️ Game Settings</div>
-            <div class="collapse-content">
-                <div id="settingsContent">
-                    <div class="setting-row">
-                        <span class="setting-label">Video Smoothing</span>
-                        <label class="toggle"><input type="checkbox" id="settingSmooth"><span class="toggle-slider"></span></label>
-                    </div>
-                    <div class="setting-row">
-                        <span class="setting-label">Aspect Ratio</span>
-                        <select class="select-small" id="settingAspect">
-                            <option value="22">Core Provided</option>
-                            <option value="0">4:3</option>
-                            <option value="1">16:9</option>
-                            <option value="2">16:10</option>
-                        </select>
-                    </div>
-                    <div class="setting-row">
-                        <span class="setting-label">Audio Latency</span>
-                        <select class="select-small" id="settingAudio">
-                            <option value="32">32ms (Low)</option>
-                            <option value="64">64ms (Default)</option>
-                            <option value="128">128ms (High)</option>
-                        </select>
-                    </div>
-                    <div class="setting-row">
-                        <span class="setting-label">Runahead (Reduce Lag)</span>
-                        <label class="toggle"><input type="checkbox" id="settingRunahead"><span class="toggle-slider"></span></label>
-                    </div>
-                    <button class="btn btn-secondary" style="width: 100%; margin-top: 1rem;" onclick="saveSettings()">Save Settings</button>
                 </div>
             </div>
         </div>
@@ -342,31 +382,47 @@
             catch (e) { showToast('Error deleting state', true); }
         }
 
+        // === SETTINGS ===
         async function loadSettings() {
             if (!currentGame) return;
             try {
                 const resp = await fetch(`/api/settings/${currentGame}`);
-                const settings = await resp.json();
-                document.getElementById('settingSmooth').checked = settings.video_smooth === 'true';
-                document.getElementById('settingAspect').value = settings.aspect_ratio_index || '22';
-                document.getElementById('settingAudio').value = settings.audio_latency || '64';
-                document.getElementById('settingRunahead').checked = settings.run_ahead_enabled === 'true';
-            } catch (e) {}
+                const s = await resp.json();
+                document.getElementById('settingResolution').value = s.resolution || '960x720';
+                document.getElementById('settingAspect').value = s.aspect || '4:3';
+                document.getElementById('settingBilinear').value = s.bilinear || '3point';
+                document.getElementById('settingMSAA').value = s.msaa || '0';
+                document.getElementById('settingHWLight').checked = s.hwlighting === 'True';
+                document.getElementById('settingFXAA').checked = s.fxaa !== '0';
+            } catch (e) { console.error('Error loading settings:', e); }
         }
 
         async function saveSettings() {
             if (!currentGame) { showToast('Select a game first', true); return; }
             const settings = {
-                video_smooth: document.getElementById('settingSmooth').checked.toString(),
-                aspect_ratio_index: document.getElementById('settingAspect').value,
-                audio_latency: document.getElementById('settingAudio').value,
-                run_ahead_enabled: document.getElementById('settingRunahead').checked.toString(),
-                run_ahead_frames: '1'
+                resolution: document.getElementById('settingResolution').value,
+                aspect: document.getElementById('settingAspect').value,
+                bilinear: document.getElementById('settingBilinear').value,
+                msaa: document.getElementById('settingMSAA').value,
+                hwlighting: document.getElementById('settingHWLight').checked ? 'True' : 'False',
+                fxaa: document.getElementById('settingFXAA').checked ? '1' : '0',
             };
-            try { await fetch(`/api/settings/${currentGame}`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(settings) }); showToast('Settings saved!'); }
-            catch (e) { showToast('Error saving settings', true); }
+            try {
+                await fetch(`/api/settings/${currentGame}`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(settings) });
+                showToast('Settings saved! Restart game to apply.');
+            } catch (e) { showToast('Error saving settings', true); }
         }
 
+        async function applyPreset(presetName) {
+            if (!currentGame) { showToast('Select a game first', true); return; }
+            try {
+                await fetch(`/api/settings/${currentGame}/preset/${presetName}`, { method: 'POST' });
+                showToast(`${presetName.charAt(0).toUpperCase() + presetName.slice(1)} preset applied!`);
+                loadSettings(); // Refresh UI
+            } catch (e) { showToast('Error applying preset', true); }
+        }
+
+        // === CHEATS ===
         async function loadCheats() {
             if (!currentGame) return;
             try {

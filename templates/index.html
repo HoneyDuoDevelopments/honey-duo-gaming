@@ -38,8 +38,6 @@
         .hub-card .icon img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; }
         .hub-card .info h2 { font-family: 'Orbitron', monospace; font-size: 1.1rem; font-weight: 700; color: var(--gold); margin-bottom: 0.25rem; }
         .hub-card .info p { font-size: 0.9rem; color: var(--text-dim); }
-        .hub-card.coming-soon { opacity: 0.5; pointer-events: none; }
-        .hub-card.coming-soon .badge { background: var(--bg-dark); color: var(--text-dim); font-size: 0.65rem; padding: 0.25rem 0.5rem; border-radius: 4px; margin-left: auto; text-transform: uppercase; letter-spacing: 1px; }
         .logout { position: fixed; bottom: 1.5rem; right: 1.5rem; background: var(--bg-card); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text-dim); padding: 0.75rem 1rem; border-radius: 8px; text-decoration: none; font-size: 0.85rem; transition: all 0.3s ease; }
         .logout:hover { border-color: var(--gold); color: var(--gold); }
     </style>
@@ -54,11 +52,6 @@
                 <div class="icon"><img src="/static/images/HoneyDuoPiN64.png" alt="N64"></div>
                 <div class="info"><h2>N64</h2><p>Nintendo 64 games</p></div>
             </a>
-            <div class="hub-card coming-soon">
-                <div class="icon">💰</div>
-                <div class="info"><h2>Spending</h2><p>Budget dashboard</p></div>
-                <span class="badge">Coming Soon</span>
-            </div>
         </div>
     </div>
     <a href="/logout" class="logout">Logout</a>
